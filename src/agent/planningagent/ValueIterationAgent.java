@@ -3,6 +3,7 @@ package agent.planningagent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import environnement.Action;
@@ -62,6 +63,27 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		this.delta=0.0;
 		
 		//*** VOTRE CODE
+		HashMapUtil newValueMap = new HashMapUtil();
+		
+		for(Etat e : mdp.getEtatsAccessibles()) {
+			double res1;
+			double resMax = Double.MIN_VALUE;
+			List<Double> lres = new ArrayList<Double>();
+			for (Action aPoss : getMdp().getActionsPossibles(e)) {
+				res1 = 0.;
+				resMax = Double.MIN_VALUE;
+				try {
+					for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet())
+						res1 += entry.getValue() * (getMdp().getRecompense(e, aPoss, entry.getKey()) + gamma * valueMap.get(e));
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				if (res1 > resMax)
+					resMax = res1;
+			}
+			newValueMap.put(e, resMax);
+		}
 		
 	
 		
