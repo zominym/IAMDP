@@ -3,6 +3,8 @@ package agent.planningagent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Random;
+
 import environnement.Action;
 import environnement.Etat;
 import environnement.MDP;
@@ -62,6 +64,7 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		HashMapUtil newValueMap = new HashMapUtil();
 		vmax = - Double.MAX_VALUE;
 		vmin = Double.MAX_VALUE;
+		
 		for(Etat e : mdp.getEtatsAccessibles()) {
 		//for(Etat e : valueMap.keySet()) {
 			if(!mdp.estAbsorbant(e))
@@ -74,8 +77,7 @@ public class ValueIterationAgent extends PlanningValueAgent{
 				for (Action aPoss : getMdp().getActionsPossibles(e)) {
 					res1 = 0.;
 					try {
-						for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet())
-						{
+						for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet()) {
 							double temp;
 							temp = entry.getValue() * (getMdp().getRecompense(e, aPoss, entry.getKey()) + gamma * valueMap.get(entry.getKey()));
 							res1 += temp;
@@ -128,16 +130,18 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	 */
 	@Override
 	public Action getAction(Etat e) {
-		
 		//*** VOTRE CODE
+		if (getMdp().estAbsorbant(e))
+			return null;
+		Random rand = new Random();
+		List<Action> l = getPolitique(e);
+		//System.out.println(l);
+		return l.get(rand.nextInt(l.size()));
 		
 		
 		// NOTE UTILE -----------------------------------------------------------------------------------------------------
 		// mdp.getEtatTransitionProba(_e, _a);
 		// mdp.getRecompense(_e, _a, _es);
-		
-	
-		return null;
 	}
 	@Override
 	public double getValeur(Etat _e) {
@@ -152,12 +156,50 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	 * (plusieurs actions sont renvoyees si valeurs identiques, liste vide si aucune action n'est possible)
 	 */
 	@Override
-	public List<Action> getPolitique(Etat _e) {
+	public List<Action> getPolitique(Etat e) {
 		List<Action> l = new ArrayList<Action>();
+		//System.out.println(e);
 		
 		//*** VOTRE CODE
-		
-		
+		if(!mdp.estAbsorbant(e))
+		{	
+			//System.out.println(e);
+			
+			double res1;
+			double resMax = Double.MIN_VALUE;
+			resMax = -Double.MAX_VALUE;
+			//System.out.println(getMdp().getActionsPossibles(e));
+			for (Action aPoss : getMdp().getActionsPossibles(e)) {
+				res1 = 0.;
+				try {
+					for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet()) {
+						double temp;
+						temp = entry.getValue() * (getMdp().getRecompense(e, aPoss, entry.getKey()) + gamma * valueMap.get(entry.getKey()));
+						res1 += temp;
+						//System.out.println(entry.getValue() + "*" + getMdp().getRecompense(e, aPoss, entry.getKey()) + "+" + gamma + "*" + valueMap.get(entry.getKey()) + "=" + temp);
+					}
+					//System.out.println("RES1 = " + res1);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				if (res1 > resMax)
+				{
+					//System.out.println(res1 + ">" + resMax);
+					//System.out.println(aPoss);
+					l = new ArrayList<Action>();
+					l.add(aPoss);
+					resMax = res1;
+				}
+				else if (res1 == resMax)
+				{
+					//System.out.println(res1 + "==" + resMax);
+					//System.out.println(aPoss);
+					l.add(aPoss);
+				}
+			}
+		}
+		//System.out.println(l);
 		return l;
 		
 	}
