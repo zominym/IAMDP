@@ -97,11 +97,11 @@ public class ValueIterationAgent extends PlanningValueAgent{
 					vmin = resMax;
 				newValueMap.put(e, resMax);
 				double deltatemp = Math.abs(valueMap.get(e) - newValueMap.get(e));
-				System.out.println(deltatemp + "=" + valueMap.get(e) + "-" + newValueMap.get(e));
-				System.out.println(delta);
+				//System.out.println(deltatemp + "=" + valueMap.get(e) + "-" + newValueMap.get(e));
+				//System.out.println(delta);
 				if (deltatemp > delta)
 					delta = deltatemp;
-				System.out.println(delta);
+				//System.out.println(delta);
 			}
 		}
 		//System.out.println(valueMap);
