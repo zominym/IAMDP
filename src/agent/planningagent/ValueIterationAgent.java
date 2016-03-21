@@ -2,14 +2,10 @@ package agent.planningagent;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
-
 import environnement.Action;
 import environnement.Etat;
 import environnement.MDP;
-import environnement.gridworld.ActionGridworld;
 import util.HashMapUtil;
 
 
@@ -64,32 +60,61 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		
 		//*** VOTRE CODE
 		HashMapUtil newValueMap = new HashMapUtil();
-		
+		vmax = - Double.MAX_VALUE;
+		vmin = Double.MAX_VALUE;
 		for(Etat e : mdp.getEtatsAccessibles()) {
-			double res1;
-			double resMax = Double.MIN_VALUE;
-			List<Double> lres = new ArrayList<Double>();
-			for (Action aPoss : getMdp().getActionsPossibles(e)) {
-				res1 = 0.;
-				resMax = Double.MIN_VALUE;
-				try {
-					for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet())
-						res1 += entry.getValue() * (getMdp().getRecompense(e, aPoss, entry.getKey()) + gamma * valueMap.get(e));
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+		//for(Etat e : valueMap.keySet()) {
+			if(!mdp.estAbsorbant(e))
+			{	
+				//System.out.println(e);
+				
+				double res1;
+				double resMax = Double.MIN_VALUE;
+				resMax = -Double.MAX_VALUE;
+				for (Action aPoss : getMdp().getActionsPossibles(e)) {
+					res1 = 0.;
+					try {
+						for (Entry<Etat, Double> entry : getMdp().getEtatTransitionProba(e, aPoss).entrySet())
+						{
+							double temp;
+							temp = entry.getValue() * (getMdp().getRecompense(e, aPoss, entry.getKey()) + gamma * valueMap.get(entry.getKey()));
+							res1 += temp;
+							//System.out.println(entry.getValue() + "*" + getMdp().getRecompense(e, aPoss, entry.getKey()) + "+" + gamma + "*" + valueMap.get(entry.getKey()) + "=" + temp);
+						}
+						//System.out.println("RES1 = " + res1);
+					} catch (Exception e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					if (res1 > resMax)
+					{
+						resMax = res1;
+					}
 				}
-				if (res1 > resMax)
-					resMax = res1;
+				if (resMax > vmax)
+					vmax = resMax;
+				if (resMax < vmin)
+					vmin = resMax;
+				newValueMap.put(e, resMax);
+				double deltatemp = Math.abs(valueMap.get(e) - newValueMap.get(e));
+				System.out.println(deltatemp + "=" + valueMap.get(e) + "-" + newValueMap.get(e));
+				System.out.println(delta);
+				if (deltatemp > delta)
+					delta = deltatemp;
+				System.out.println(delta);
 			}
-			newValueMap.put(e, resMax);
 		}
+		//System.out.println(valueMap);
+		//System.out.println(newValueMap);
+		valueMap = newValueMap;
 		
 	
 		
 		
 		// mise a jour vmax et vmin pour affichage du gradient de couleur:
 		//vmax est la valeur de max pour tout s de V
+		
+		
 		//vmin est la valeur de min pour tout s de V
 		// ...
 		
@@ -106,6 +131,7 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		
 		//*** VOTRE CODE
 		
+		
 		// NOTE UTILE -----------------------------------------------------------------------------------------------------
 		// mdp.getEtatTransitionProba(_e, _a);
 		// mdp.getRecompense(_e, _a, _es);
@@ -116,11 +142,13 @@ public class ValueIterationAgent extends PlanningValueAgent{
 	@Override
 	public double getValeur(Etat _e) {
 		
-		//*** VOTRE CODE
-		return valueMap.get(_e);
+		if (valueMap.containsKey(_e))
+			return valueMap.get(_e);
+		else
+			return 0;
 	}
 	/**
-	 * renvoi la (les) action(s) de plus forte(s) valeur(s) dans l'etat e 
+	 * renvoie la (les) action(s) de plus forte(s) valeur(s) dans l'etat e 
 	 * (plusieurs actions sont renvoyees si valeurs identiques, liste vide si aucune action n'est possible)
 	 */
 	@Override
@@ -139,7 +167,8 @@ public class ValueIterationAgent extends PlanningValueAgent{
 		super.reset();
 		
 		//*** VOTRE CODE
-		
+		for(Etat e : mdp.getEtatsAccessibles())
+			valueMap.put(e, 0.);
 		
 		
 		
